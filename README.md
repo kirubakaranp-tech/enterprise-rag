@@ -7,7 +7,7 @@ A RAG pipeline for company knowledge from three kinds of sources. Work happens o
 
 | Source | Files | How it is read | One chunk per |
 |---|---|---|---|
-| PDF policies | `data/pdfs/employee_handbook.pdf` (12 pages), `hr_compensation_policy.pdf` (5 pages), `it_security_policy.pdf` (6 pages) | PyMuPDF, page by page, with the section heading found by font size (Day 1) | about 300 characters of a page |
+| PDF policies | `data/pdfs/employee_handbook.pdf` (12 pages), `hr_compensation_policy.pdf` (5 pages), `it_security_policy.pdf` (6 pages), `policy_register.pdf` (policy codes like HR-204, added in the BM25 task) | PyMuPDF, page by page, with the section heading found by font size (Day 1) | about 300 characters of a page |
 | CSV exports | `data/csv/employees.csv` (120 rows), `data/csv/leave_records.csv` (300 rows) | pandas, every row becomes a sentence | row |
 
 CSV rows are turned into text that reads well for RAG, for example:
@@ -76,6 +76,30 @@ reaches the database, and an unknown tool name returns an error instead of runni
 `results/router_eval.md`. The expected numbers for the data questions are read from the
 database, so the check always matches the data.
 
+## BM25 and vector search baselines
+
+`search_baselines.py` compares two ways of finding chunks:
+
+- `bm25_search(query, k)`: a BM25 index (`rank_bm25`) over all chunks in Chroma. The text is split
+  into lowercase words, and codes like `HR-204`, ids like `E047` and dates stay as one word.
+- `vector_search(query, k)`: Chroma's embedding search.
+
+It asks 10 questions: 5 that need an exact keyword (policy codes, an employee id, a date, a product
+name) and 5 that only match by meaning. A hit means the chunk with the answer is in the top 3.
+The table `Question | BM25 hit (Y/N) | Vector hit (Y/N)` is saved in `results/retrieval_comparison.md`.
+
+```
+python ingest.py
+python search_baselines.py
+```
+
+### Where each one wins
+
+1. BM25 wins on exact words: policy codes like HR-204, ids like E047, dates and rare names like BitLocker. A rare word gets a high score, so the right chunk comes first.
+2. Vectors are weaker there, because an embedding turns "HR-204" into a general idea like "an HR policy", and E047 looks almost the same as E048.
+3. Vectors win on meaning: "unused vacation days" finds "earned leave carried forward" and "fake email" finds "phishing", although the words are different.
+4. BM25 misses those, and it can even be fooled by common words: for "Who owns IT-117?" it ranked a chunk with "who" and "owns" above the IT-117 chunk. That is why real systems combine both (hybrid search).
+
 ## Setup
 
 ```
@@ -136,6 +160,7 @@ sql_tools.py       the 3 safe SQL tools
 rag_search.py      finds the best policy chunks
 router.py          chooses rag, sql or both and writes the answer with sources
 eval_router.py     tests 8 questions and saves the results table
+search_baselines.py  BM25 and vector search, compared on 10 questions
 tests/             tests with a fake embedding model
 ```
 

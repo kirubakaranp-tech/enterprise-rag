@@ -1,4 +1,7 @@
 pymupdf
 pandas
 chromadb
+psycopg[binary]
+openai
+python-dotenv
 pytest

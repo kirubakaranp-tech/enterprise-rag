@@ -1,0 +1,37 @@
+{
+  "employee_handbook.pdf": {
+    "hash": "8c7086ba0e50c70539c79713455d33f7af70e65726221b419f09d05e4844e561",
+    "file_name": "employee_handbook.pdf",
+    "source_type": "pdf",
+    "chunks": 44,
+    "last_synced_at": "2026-11-26T16:49:18"
+  },
+  "hr_compensation_policy.pdf": {
+    "hash": "ac947b02428f559705be48fa39724a6645fea4fbf0587b95427c4218d9e23092",
+    "file_name": "hr_compensation_policy.pdf",
+    "source_type": "pdf",
+    "chunks": 9,
+    "last_synced_at": "2026-11-26T16:49:18"
+  },
+  "it_security_policy.pdf": {
+    "hash": "4b6654a0f223befc952dcdfa7ca230d3eaf9c6aa9e7ff146b9f557d4d9db758e",
+    "file_name": "it_security_policy.pdf",
+    "source_type": "pdf",
+    "chunks": 14,
+    "last_synced_at": "2026-11-26T16:49:18"
+  },
+  "employees.csv": {
+    "hash": "28f1bac344694c1950cb6fc3487526cdeee241028d5dc77cc46b4f108789c848",
+    "file_name": "employees.csv",
+    "source_type": "csv",
+    "chunks": 120,
+    "last_synced_at": "2026-11-26T16:49:18"
+  },
+  "leave_records.csv": {
+    "hash": "d8e5d15955c406da1aebabbc16a0d3696940d77e765903086cfda377fafc196c",
+    "file_name": "leave_records.csv",
+    "source_type": "csv",
+    "chunks": 300,
+    "last_synced_at": "2026-11-26T16:49:18"
+  }
+}

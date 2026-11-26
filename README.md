@@ -120,8 +120,37 @@ score = weight * 1 / (60 + rank in BM25)  +  (1 - weight) * 1 / (60 + rank in ve
 
 `python hybrid_search.py` re-runs the same 10 questions, tries the weights 0.0 to 1.0, picks the best
 one and compares the hit rate at top 3 of BM25, vector and hybrid search. If several weights tie,
-the one closest to 0.5 wins, because a balanced weight is safer for new kinds of questions than one
-that leans on a single method. The results are saved in `results/hybrid_comparison.md`.
+the one closest to 0.5 wins. The results are saved in `results/hybrid_comparison.md`.
+
+### Results
+
+```
+Hit rate @3 -> BM25: 6/10 | Vector: 8/10 | Hybrid: 8/10
+```
+
+| BM25 weight | 0.0 | 0.2 | 0.3 | 0.4 | 0.5 | 0.6 | 0.7 | 0.8 | 1.0 |
+|---|---|---|---|---|---|---|---|---|---|
+| Hybrid hits @3 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 6 |
+
+Compared with vector search alone, hybrid search gained "unused vacation days" (found by BM25) but
+lost "fake email", and both still missed employee E047.
+
+### Best weight: 0.5
+
+- Every weight from 0.0 to 0.8 gives 8/10, and only pure BM25 (1.0) is worse, so mixing in vector
+  search is what matters most.
+- Among the tied weights, 0.5 is plain RRF and does not lean on one method. On these 10 questions the
+  two methods are equally useful (each one finds questions the other misses), so a balanced weight is
+  the safest choice for new questions.
+
+### Why hybrid did not beat vector search here
+
+With the constant 60 in `1 / (60 + rank)`, rank 1 and rank 3 score almost the same (1/61 and 1/63).
+A chunk that is only fairly high in both lists (for example rank 8 in each, 2/68) beats a chunk that
+is first in one list only (1/61). So the chunks that only one method found, like E047 (BM25) and the
+phishing chunk (vector), were pushed out of the top 3 by chunks that appear in both lists. RRF helps
+most when the right answer is found by both methods; with a small top 3 and only 10 questions it can
+also lose a few answers that a single method had.
 
 ## Setup
 

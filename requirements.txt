@@ -1,6 +1,7 @@
 pymupdf
 pandas
 chromadb
+rank_bm25
 psycopg[binary]
 openai
 python-dotenv

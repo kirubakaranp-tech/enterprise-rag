@@ -39,7 +39,7 @@ def test_format_time():
 def test_first_run_indexes_every_source(data, capsys):
     summary, skipped = ingest_all()
 
-    assert summary["PDF"]["files"] == 3
+    assert summary["PDF"]["files"] == 4
     assert summary["CSV"] == {"files": 2, "chunks": 420}
     assert skipped == 0
     output = capsys.readouterr().out
@@ -67,7 +67,7 @@ def test_second_run_skips_unchanged_files(data, capsys):
 
     summary, skipped = ingest_all()
 
-    assert skipped == 5
+    assert skipped == 6
     assert summary["PDF"] == {"files": 0, "chunks": 0}
     assert get_collection().count() == count
 
@@ -79,6 +79,6 @@ def test_changed_csv_is_reindexed_without_duplicates(data):
 
     summary, skipped = ingest_all()
 
-    assert skipped == 4
+    assert skipped == 5
     assert summary["CSV"] == {"files": 1, "chunks": 301}
     assert len(get_collection().get(where={"source": "leave_records.csv"})["ids"]) == 301

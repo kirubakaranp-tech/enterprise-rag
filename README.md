@@ -93,12 +93,35 @@ python ingest.py
 python search_baselines.py
 ```
 
+### Results
+
+Hit rate at top 3 with the real embedding model: **BM25 6/10, vector 8/10**
+(full table in `results/retrieval_comparison.md`).
+
 ### Where each one wins
 
-1. BM25 wins on exact words: policy codes like HR-204, ids like E047, dates and rare names like BitLocker. A rare word gets a high score, so the right chunk comes first.
-2. Vectors are weaker there, because an embedding turns "HR-204" into a general idea like "an HR policy", and E047 looks almost the same as E048.
-3. Vectors win on meaning: "unused vacation days" finds "earned leave carried forward" and "fake email" finds "phishing", although the words are different.
-4. BM25 misses those, and it can even be fooled by common words: for "Who owns IT-117?" it ranked a chunk with "who" and "owns" above the IT-117 chunk. That is why real systems combine both (hybrid search).
+1. BM25 wins when only an exact token matters: it found employee E047, while vectors missed it, because for an embedding "E047" looks almost the same as any other id.
+2. Vectors win on meaning: "fake email" found the phishing rules, "promoted" found the promotion increase and "keep coming late" found the late-arrival rule, where BM25 had no matching words.
+3. Vectors also found HR-204 and IT-117, because the words around the code (policy, owner) helped, while BM25 lost IT-117 to a chunk that just repeats the common words "who" and "owns".
+4. BM25 found "unused vacation days" by matching "unused" and "days" when vectors missed it, so each method catches different questions, which is why combining them (hybrid search) helps.
+
+## Hybrid search with rank fusion
+
+`hybrid_search.py` combines both result lists with Reciprocal Rank Fusion. Each method returns its
+top 20 chunks, and every chunk gets points for its rank in each list:
+
+```
+score = weight * 1 / (60 + rank in BM25)  +  (1 - weight) * 1 / (60 + rank in vector)
+```
+
+- `weight` is the share of BM25: `1.0` is pure BM25, `0.0` is pure vector search.
+- With `weight=0.5` this is plain RRF, `sum(1 / (60 + rank))`, just halved, so the order is the same.
+- A chunk that both methods find gets points twice, so it moves to the top.
+
+`python hybrid_search.py` re-runs the same 10 questions, tries the weights 0.0 to 1.0, picks the best
+one and compares the hit rate at top 3 of BM25, vector and hybrid search. If several weights tie,
+the one closest to 0.5 wins, because a balanced weight is safer for new kinds of questions than one
+that leans on a single method. The results are saved in `results/hybrid_comparison.md`.
 
 ## Setup
 
@@ -161,6 +184,7 @@ rag_search.py      finds the best policy chunks
 router.py          chooses rag, sql or both and writes the answer with sources
 eval_router.py     tests 8 questions and saves the results table
 search_baselines.py  BM25 and vector search, compared on 10 questions
+hybrid_search.py     combines both with reciprocal rank fusion and picks the best weight
 tests/             tests with a fake embedding model
 ```
 
